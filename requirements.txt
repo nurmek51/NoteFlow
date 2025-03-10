@@ -28,4 +28,7 @@ Pillow==10.2.0
 
 # Work with env
 django-environ==0.11.2
+django-cors-headers==3.13.0
+python-dotenv==1.0.1
+
 
