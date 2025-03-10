@@ -1,0 +1,31 @@
+Django==4.2
+
+# Django REST Framework
+djangorestframework==3.14.0
+
+# Django Channels for WebSockets
+channels==4.0.0
+channels-redis==4.1.0
+
+# PostgreSQL driver
+psycopg2-binary==2.9.9
+
+# Storage (MinIO / S3)
+boto3==1.34.0
+
+# Caching (Redis)
+django-redis==5.4.0
+redis==5.0.1
+
+# File validation
+python-magic==0.4.27
+
+# Security
+bcrypt==4.0.1
+
+# Image processing
+Pillow==10.2.0
+
+# Work with env
+django-environ==0.11.2
+

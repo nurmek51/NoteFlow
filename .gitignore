@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env
+
+# Django specific
+*.log
+db.sqlite3
+/media/
+/static/
+/staticfiles/
+
+# Python packages
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Redis dump
+*.rdb
+
+# Docker
+*.dockerfile
+/docker/
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Ignore compiled files
+*.so
+*.dll
+
+# Ignore node_modules (если фронт будет в этом репозитории)
+node_modules/
+
+# Local storage
+/media/
+/local_storage/
