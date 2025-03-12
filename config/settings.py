@@ -83,8 +83,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI application
-WSGI_APPLICATION = 'config.wsgi.application'
+# ASGI application
 ASGI_APPLICATION = 'config.asgi.application'
 
 # Database settings (PostgreSQL)
@@ -134,9 +133,13 @@ SIMPLE_JWT = {
 # Django Channels settings
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379")],
+        },
     },
 }
+
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -146,15 +149,13 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/django_errors.log',
+        'console': {
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True,
         },
