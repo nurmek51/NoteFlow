@@ -35,6 +35,22 @@ INSTALLED_APPS = [
     'apps.chats',
 ]
 
+# Internationalization
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 # Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -96,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # JWT Authentication settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
@@ -144,4 +161,3 @@ LOGGING = {
     },
 }
 
-STATIC_URL = './static/'
