@@ -40,20 +40,21 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         #by id
         user = self.request.user
         searching_user = self.get_object()
-        serializer = self.get_serializer(user)
+        serializer = UserUpdateSerializer(searching_user)
         data = serializer.data
-        if data["username"] == searching_user.username:
+        print(data)
+        if data["username"] == user.username:
 
-            favourite_subjects = SubjectSerializer(searching_user.favorite_subjects.all(), many=True).data
-            favourite_lecturers = LecturerSerializer(searching_user.favorite_lecturers.all(), many=True).data
+            favorite_subjects = SubjectSerializer(searching_user.favorite_subjects.all(), many=True).data
+            favorite_lecturer = LecturerSerializer(searching_user.favorite_lecturer).data if searching_user.favorite_lecturer else None
 
             filtered_data = {
                 "username": data.get("username"),
                 "email": data.get("email"),
                 "profile_picture": data.get("profile_picture"),
                 "bio": data.get("bio"),
-                "favourite_subject": favourite_subjects,
-                "favourite_lecturer": favourite_lecturers,
+                "favorite_subject": favorite_subjects,
+                "favorite_lecturer": favorite_lecturer,
             }
             return Response(filtered_data, status=status.HTTP_200_OK)
         return Response({'message': "You cannot see data of other people"}, status=status.HTTP_400_BAD_REQUEST)
@@ -82,3 +83,4 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             user.delete()
             return Response({"message":"User deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
         return Response({'message': "You cannot delete account of other people"}, status=status.HTTP_400_BAD_REQUEST)
+

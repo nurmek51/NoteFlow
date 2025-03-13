@@ -6,7 +6,7 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   #post
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  #post
     path('register/', UserRegistrationView.as_view(), name='register_user'),   #post
-    path('user/detail/<int:pk>', UserDetailView.as_view(), name='user_detail')  #get-details, put-change details, delete-deleteuser
+    path('user/detail/<int:pk>', UserDetailView.as_view(), name='user_detail')  #get-details(even favorite), put-change details, delete-deleteuser
 ]
 
 # {
