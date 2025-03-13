@@ -7,7 +7,7 @@ class User(AbstractUser):
     favorite_subjects = models.ManyToManyField('materials.Subject', related_name='favorite_users', blank=True)
 
 
-    favorite_lecturer = models.ManyToManyField("materials.Lecturer", related_name='favorite_lecturers', blank=True)
+    favorite_lecturers = models.ManyToManyField("materials.Lecturer", related_name='favorite_lecturers', blank=True)
     def __str__(self):
         return self.username
 

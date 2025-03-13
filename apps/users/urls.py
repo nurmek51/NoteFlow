@@ -1,10 +1,12 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import UserRegistrationView
+from .views import UserRegistrationView, UserDetailView
+
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('register/', UserRegistrationView.as_view(), name='register_user')
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   #post
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  #post
+    path('register/', UserRegistrationView.as_view(), name='register_user'),   #post
+    path('user/detail/<int:pk>', UserDetailView.as_view(), name='user_detail')  #get-details, put-change details, delete-deleteuser
 ]
 
 # {
