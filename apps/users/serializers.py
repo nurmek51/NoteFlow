@@ -10,14 +10,25 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2')
+        fields = ['username', 'email','password','password2']
+
 
     def validate(self, data):
-        if data['password'] != data['password2']:
-            raise serializers.ValidationError({'password': 'Passwords do not match'})
+        password = data.get('password')
+        password2 = data.get('password2')
+        if password and password2:
+            if data['password'] != data['password2']:
+                raise serializers.ValidationError({'password': 'Passwords do not match'})
         return data
 
     def create(self, validated_data):
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
         return user
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    bio = serializers.CharField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'bio', 'profile_picture', 'favorite_lecturer', 'favorite_subjects']  # include only fields you want to update

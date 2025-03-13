@@ -14,5 +14,5 @@ urlpatterns = [
     path('materials/<int:pk>/', material_detail, name = 'material-detail'), # Детали конкретного материала/Изменить и удалить материал
 
     path('material/vote/<int:material_id>/', vote_material, name='vote-material'), #Поставить лайк(1)/дизлайк(-1)
-    path('material/comment/<int:material_id>/>', comment_list, name = 'comment-list') #Получить все комменты/Написать комм
+    path('material/comment/<int:material_id>', comment_list, name = 'comment-list') #Получить все комменты/Написать комм
     ]
