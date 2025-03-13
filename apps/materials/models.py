@@ -23,6 +23,7 @@ class StudyMaterial(models.Model):
         ('TXT', 'TXT'),
         ('PNG', 'PNG'),
         ('JPG', 'JPG'),
+        ('JPEG', 'JPEG'),
         ('HEIC', 'HEIC'),
     ]
 
