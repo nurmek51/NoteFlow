@@ -2,6 +2,7 @@ Django==4.2
 
 # Django REST Framework
 djangorestframework==3.14.0
+whitenoise==6.9.0
 
 # Django Channels for WebSockets
 channels==4.0.0
