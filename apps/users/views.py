@@ -1,8 +1,12 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .serializers import UserRegistrationSerializer, UserUpdateSerializer
 from .models import User
 from rest_framework.permissions import AllowAny
+
+from ..materials.models import Lecturer, Subject
 from ..materials.serializers import SubjectSerializer, LecturerSerializer
 
 
@@ -42,7 +46,6 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         searching_user = self.get_object()
         serializer = UserUpdateSerializer(searching_user)
         data = serializer.data
-        print(data)
         if data["username"] == user.username:
 
             favorite_subjects = SubjectSerializer(searching_user.favorite_subjects.all(), many=True).data
@@ -84,3 +87,76 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message":"User deleted succesfully"}, status=status.HTTP_204_NO_CONTENT)
         return Response({'message': "You cannot delete account of other people"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class UserFavoriteSubjectsUpdateDeleteView(APIView):
+
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request):
+        """
+                ✅ Обновление любимых предметов.
+                Ожидает в теле запроса {"subject_id": 1}, где 1 - id subjecta.
+        """
+        user = request.user
+        subject_id = request.data.get('subject_id')
+
+        try:
+            subject = Subject.objects.get(id=subject_id)
+        except Subject.DoesNotExist:
+            return Response({'message': "Subject doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if subject_id not in user.favorite_subjects.all():
+            return Response({'message': "This subject is already your favorite subject"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.favorite_subjects.add(subject)
+        user.save()
+        return Response({'message': f"Subject {subject.name} added to favorites"}, status=status.HTTP_200_OK)
+
+
+    def delete(self, request):
+        user = request.user
+        subject_id = request.data.get('subject_id')
+
+        try:
+            subject = Subject.objects.get(id=subject_id)
+        except Subject.DoesNotExist:
+            return Response({'message': "Subject doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if subject_id not in user.favorite.subjects.all():
+            return Response({'message': "This subject is not in your favorite subjects list"}, status=status.HTTP_400_BAD_REQUEST)
+        user.favorite.subjects.remove(subject)
+        return Response({'message': f"Subject {subject.name} deleted successfully"}, status=status.HTTP_200_OK)
+
+class UserFavoriteLecturerUpdateDeleteView(generics.GenericAPIView):
+
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def put(self, request):
+        """
+                ✅ Обновление любимого преподавателя.
+                Ожидает в теле запроса {"lecturer_id": 1}, где 1 - id преподавателя.
+        """
+        user = self.get_object()
+        lecturer_id = request.data.get('lecturer_id')
+        try:
+            lecturer = Lecturer.objects.get(id=lecturer_id)
+        except Lecturer.DoesNotExist:
+            return Response({'message': "Lecturer doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+        user.favorite_lecturer = lecturer
+        user.save()
+        return Response({'message': "Lecturer updated successfully"}, status=status.HTTP_200_OK)
+
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.favorite_lecturer is None:
+            return Response({'message': "You already do not have lecturer"}, status=status.HTTP_400_BAD_REQUEST)
+        user.favorite_lecturer = None
+        user.save()
+        return Response({'message': "Lecturer deleted successfully"}, status=status.HTTP_200_OK)

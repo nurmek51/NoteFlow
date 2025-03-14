@@ -8,7 +8,6 @@ class User(AbstractUser):
 
 
     favorite_lecturer = models.ForeignKey("materials.Lecturer", related_name='favoriting_users',null=True, blank=True, on_delete=models.CASCADE)
-    # favou
 
     def __str__(self):
         return self.username
