@@ -27,6 +27,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
+# Trusted source
+CSRF_TRUSTED_ORIGINS = [
+    "https://noteflow-3lsl.onrender.com",
+]
+
 # Application definition
 INSTALLED_APPS = [
     'storages',
