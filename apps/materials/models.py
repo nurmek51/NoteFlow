@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from ..users.models import User
 
@@ -14,24 +15,23 @@ class Lecturer(models.Model):
     def __str__(self):
         return self.name
 
+def validate_material_extension(value):
+    ALLOWED_MATERIAL_EXTENSIONS = ['pdf','docx','pptx','txt','png','jpg','jpeg','heic']
+    ext = value.name.split('.')[-1]
+    if ext not in ALLOWED_MATERIAL_EXTENSIONS:
+        raise ValidationError(f"Invalid file extension: {ext}. Extension must be one of {ALLOWED_MATERIAL_EXTENSIONS}")
+
+def validate_file_size(value):
+    if value.size > 5 * 1024 * 1024:  # 5MB
+        raise ValidationError("File is to big! (maximum 5MB)")
+
 class StudyMaterial(models.Model):
-    FORMAT_CHOICES = [
-        ('PDF', 'PDF'),
-        ('DOCX', 'DOCX'),
-        ('PPTX', 'PPTX'),
-        ('TXT', 'TXT'),
-        ('PNG', 'PNG'),
-        ('JPG', 'JPG'),
-        ('JPEG', 'JPEG'),
-        ('HEIC', 'HEIC'),
-    ]
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='materials')
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_materials')
-    file_format = models.CharField(max_length=10, choices=FORMAT_CHOICES, default='PDF')
-    file = models.FileField(upload_to='materials/')
+    file = models.FileField(upload_to='materials/', validators=[validate_material_extension, validate_file_size], blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -64,8 +64,8 @@ class Vote(models.Model):
     material = models.ForeignKey(StudyMaterial, on_delete=models.CASCADE, related_name='votes')
     vote = models.IntegerField(choices=VOTE_CHOICES)
 
-    class Meta:
-        unique_together = ('user', 'material')
+class Meta:
+    unique_together = ('user', 'material')
 
-    def __str__(self):
-        return f"{self.user.username} voted {self.vote} on {self.material.title}"
+def __str__(self):
+    return f"{self.user.username} voted {self.vote} on {self.material.title}"

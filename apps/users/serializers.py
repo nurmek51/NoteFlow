@@ -26,9 +26,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'bio', 'profile_picture', 'favorite_lecturer', 'favorite_subjects']  # include only fields you want to update
+        fields = ['username', 'email', 'bio', 'profile_picture', 'favorite_lecturer', 'favorite_subjects']
+
+
+class ProfilePictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['profile_picture']
+
+    def update(self, instance, validated_data):
+        instance.profile_picture = validated_data.get('profile_picture', instance.profile_picture)
+        instance.save()  # ✅ Correct: Directly call save() on the instance
+        return instance

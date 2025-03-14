@@ -1,7 +1,10 @@
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+
 from .models import Subject, Lecturer, StudyMaterial, Tag, Comment, Vote
 from .serializers import (
     SubjectSerializer, LecturerSerializer, StudyMaterialSerializer,
@@ -131,3 +134,48 @@ def comment_list(request, material_id):
             serializer.save(user=request.user, material=material)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MaterialUploadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        material_id = request.data.get('id')
+
+        if material_id:
+            try:
+                material = StudyMaterial.objects.get(id=material_id, uploaded_by=request.user)
+
+                if material.file:
+                    material.file.delete(save=False)
+
+                serializer = StudyMaterialSerializer(material, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({"message": f"Material successfully updated: {request.data}"}, status=status.HTTP_200_OK)
+
+            except StudyMaterial.DoesNotExist:
+                return Response({"error": "Material not found or not owned by user"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StudyMaterialSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(uploaded_by=request.user)
+            return Response({"message": f"Material successfully created: {request.data}"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MaterialDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request,material_id):    # DELETE http://127.0.0.1:8000/upload/material/5/
+        try:
+            material = StudyMaterial.objects.get(id = material_id,uploaded_by=request.user)
+
+            if material.file:
+                material.file.delete(save=False) #from s3
+            material.delete() # from postgre
+
+            return Response({'message':"Material deleted succsessfully"},status=status.HTTP_204_NO_CONTENT)
+        except StudyMaterial.DoesNotExist:
+            return Response({"error": "Material not found or not owned by user"}, status=status.HTTP_404_NOT_FOUND)

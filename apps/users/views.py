@@ -1,8 +1,9 @@
 from rest_framework import generics, status, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import UserRegistrationSerializer, UserUpdateSerializer
+from .serializers import UserRegistrationSerializer, UserUpdateSerializer, ProfilePictureSerializer
 from .models import User
 from rest_framework.permissions import AllowAny
 
@@ -160,3 +161,36 @@ class UserFavoriteLecturerUpdateDeleteView(generics.GenericAPIView):
         user.favorite_lecturer = None
         user.save()
         return Response({'message': "Lecturer deleted successfully"}, status=status.HTTP_200_OK)
+
+
+class ProfilePictureUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs ):
+        user = request.user
+        serializer = ProfilePictureSerializer(user, data=request.data, partial=True)
+
+        if user.profile_picture:
+            user.profile_picture.delete(save=False) #s3 delete if its already exists
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'profile_picture_url': user.profile_picture.url}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfilePictureDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self,request):
+        try:
+            user = User.objects.get(id=request.user.id)
+            if user.profile_picture:
+                user.profile_picture.delete(save=False) #s3
+                user.profile_picture = None #postgre
+                user.save()
+
+            return Response({"message": "Avatar deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'message': "User doesn't exist"}, status=status.HTTP_404_NOT_FOUND)
