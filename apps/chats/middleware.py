@@ -32,9 +32,9 @@ class JWTAuthMiddleware:
             print(f"User authenticated: {scope['user']}")  # log of success auth
         else:
             scope["user"] = AnonymousUser()
-            print("❌ JWT Token is missing or invalid, setting AnonymousUser")
+            print("JWT Token is missing or invalid, setting AnonymousUser")
 
-        print(f"🔍 Final user in scope: {scope['user']}")
+        print(f"Final user in scope: {scope['user']}")
         return await self.inner(scope, receive, send)
 
 def JWTAuthMiddlewareStack(inner):
