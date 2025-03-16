@@ -16,7 +16,7 @@ def get_user_from_token(token):
 
 class JWTAuthMiddleware:
     """
-    Middleware for auth through JWT, which extract the token from query string and put the user in the scope
+    Middleware for auth through JWT, which extracts the token from query string and puts the user in the scope.
     """
     def __init__(self, inner):
         self.inner = inner
@@ -29,10 +29,12 @@ class JWTAuthMiddleware:
 
         if token:
             scope["user"] = await get_user_from_token(token)
+            print(f"User authenticated: {scope['user']}")  # log of success auth
         else:
             scope["user"] = AnonymousUser()
+            print("❌ JWT Token is missing or invalid, setting AnonymousUser")
 
-        print("User in scope:", scope["user"])
+        print(f"🔍 Final user in scope: {scope['user']}")
         return await self.inner(scope, receive, send)
 
 def JWTAuthMiddlewareStack(inner):
