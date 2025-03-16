@@ -3,65 +3,32 @@ import json
 from channels.db import database_sync_to_async
 from django.db.models import Q
 from apps.chats.models import ChatMessage
-class ChatConsumer(AsyncWebsocketConsumer):
+from ..users.models import User, StudyGroup
+class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'chat_{self.room_name}'
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        message = data['message']
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {'type': 'chat_message', 'message': message}
-        )
-
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps({'message': event['message']}))
-
-
-class PrivateChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        # close connection if user not authed
+        """ Initializing connect to WSocket """
         if not self.scope.get("user") or not self.scope["user"].is_authenticated:
+            print(f"User is not authenticated: {self.scope.get('user')}")
             await self.close()
             return
 
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f'private_{self.room_name}'
+        self.group_id = self.scope["url_route"]["kwargs"]["group_id"]
+        self.group_name = f"group_{self.group_id}"
+        self.user = self.scope["user"]
 
-
-        try:
-            parts = self.room_name.split("_")
-            # parts[0] = "private", parts[1] = "chat", parts[2] и parts[3] — ID
-            user_id1 = int(parts[2])
-            user_id2 = int(parts[3])
-        except Exception as e:
+        # Checking that user in the group
+        is_member = await self.check_membership(self.user.id, self.group_id)
+        if not is_member:
+            print(f"User {self.user.id} is not a member of group {self.group_id}")
             await self.close()
             return
 
-        print(user_id1, user_id2)
-        # Identifies the user of current chat
-        current_user_id = self.scope["user"].id
-        if current_user_id == user_id1:
-            self.other_user_id = user_id2
-        elif current_user_id == user_id2:
-            self.other_user_id = user_id1
-        else:
-            # User not member of this chat
-            await self.close()
-            return
-
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        # Adding user to group channel
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
-        # Load the message history and send to client
-        messages = await self.get_chat_history(current_user_id, self.other_user_id)
+        # Sendign chat history
+        messages = await self.get_chat_history(self.group_id)
         for msg in messages:
             await self.send(text_data=json.dumps({
                 "message": msg.message,
@@ -70,25 +37,26 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        """ Initializing disconnect to WebSocket """
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
+        """ Initializing receiving message """
         data = json.loads(text_data)
         message = data.get("message", "")
-        sender = self.scope["user"].username if self.scope["user"].is_authenticated else "not auth"
 
-        # Saving the message in DB
-        await self.save_message(self.scope["user"].id, self.other_user_id, message)
+        # Saving message to DB
+        await self.save_message(self.user.id, self.group_id, message)
 
+        # Sending the message to all members
         await self.channel_layer.group_send(
-            self.room_group_name,
+            self.group_name,
             {
                 "type": "chat_message",
                 "message": message,
-                "sender": sender,
+                "sender": self.user.username,
             }
         )
-
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
@@ -97,18 +65,15 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def get_chat_history(self, user_id, other_user_id):
-        qs = ChatMessage.objects.filter(
-            Q(sender_id=user_id, receiver_id=other_user_id) |
-            Q(sender_id=other_user_id, receiver_id=user_id)
-        ).select_related('sender').order_by("timestamp")
-        return list(qs)
+    def check_membership(self, user_id, group_id):
+        """ Checking the membershio"""
+        return StudyGroup.objects.filter(id=group_id, members__id=user_id).exists()
 
     @database_sync_to_async
-    def save_message(self, sender_id, receiver_id, message):
-        # Making image of message in DB
-        ChatMessage.objects.create(
-            sender_id=sender_id,
-            receiver_id=receiver_id,
-            message=message,
-        )
+    def get_chat_history(self, group_id):
+        return list(ChatMessage.objects.filter(group_id=group_id).select_related('sender').order_by("timestamp"))
+
+    @database_sync_to_async
+    def save_message(self, sender_id, group_id, message):
+        group = StudyGroup.objects.get(id=group_id)
+        ChatMessage.objects.create(sender_id=sender_id, group=group, message=message)
