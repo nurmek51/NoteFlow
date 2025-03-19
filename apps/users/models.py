@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -14,12 +16,18 @@ class User(AbstractUser):
     profile_picture = models.FileField(upload_to="users/",validators=[validate_avatar_extension, validate_file_size],blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     favorite_subjects = models.ManyToManyField('materials.Subject', related_name='favorite_users', blank=True)
+    is_active = models.BooleanField(default=False)
 
 
     favorite_lecturer = models.ForeignKey("materials.Lecturer", related_name='favoriting_users',null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.username
+
+class EmailVerificationToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class StudyGroup(models.Model):
     name = models.CharField(max_length=255)

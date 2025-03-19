@@ -1,39 +1,49 @@
-from rest_framework import generics, status, permissions
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, status, permissions, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import UserRegistrationSerializer, UserUpdateSerializer, ProfilePictureSerializer
-from .models import User
+from .models import User, EmailVerificationToken
 from rest_framework.permissions import AllowAny
 
 from ..materials.models import Lecturer, Subject
 from ..materials.serializers import SubjectSerializer, LecturerSerializer
 
 
+User = get_user_model()
+
+class VerifyEmailView(APIView):
+    def get(self, request, verification_code):
+        user_data = cache.get(verification_code)
+
+        if not user_data:
+            return Response({"error": "Срок действия ссылки истек или она недействительна."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Create user
+        user = User.objects.create_user(**user_data, is_active=True)
+
+        # Remove cached data
+        cache.delete(verification_code)
+
+        return Response({"message": "Email подтвержден! Теперь вы можете войти."}, status=status.HTTP_201_CREATED)
+
+
+
 class UserRegistrationView(generics.CreateAPIView):
-    """
-    API endpoint for user registration.
-    """
-    queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        """
-        Handles user registration by validating and creating a new user.
-            """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        response_data = serializer.save()  # Это наш `return {...}` в `create()`
 
-        return Response(
-            {
-                "message": "User registered successfully",
-                "username": user.username
-            },
-            status=status.HTTP_201_CREATED
-        )
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 
