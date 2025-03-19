@@ -1,132 +1,222 @@
-# Документация по серверной части проекта NoteFlow
+Вот дополненный и доработанный `README.md` с учетом Swagger-документации и улучшенной структурой.  
 
-## Описание проекта
+---
 
-**NoteFlow** — это платформа для обмена образовательными материалами Университета SDU, предоставляющая пользователям возможность загружать, искать, фильтровать, оценивать и обсуждать учебные материалы по различным предметам. Платформа также включает функциональность чатов для общения между пользователями.
+## 📌 **NoteFlow — Server-side Documentation**
 
-## Структура проекта
+### 📖 **Project Description**
+**NoteFlow** is a platform for sharing educational materials at SDU University. It allows users to upload, search, filter, rate, and discuss study materials across various subjects. The platform also features **a chat system** for communication between users.
 
-Проект имеет следующую файловую структуру:
+This documentation covers **backend setup, API documentation, database management, and WebSocket chat configuration**.
 
-- **apps/**: содержит приложения Django, реализующие основную функциональность платформы.
-  - **users/**: управление пользователями и их профилями.
-  - **materials/**: загрузка, хранение и управление образовательными материалами.
-  - **reviews/**: система оценки и рецензирования материалов.
-  - **comments/**: функциональность для обсуждения материалов.
-  - **chats/**: реализация системы чатов между пользователями с использованием Redis и WebSocket.
+---
 
-- **config/**: включает настройки проекта.
-  - **settings.py**: основные настройки Django.
-  - **urls.py**: маршрутизация URL.
-  - **asgi.py**: настройка ASGI для поддержки асинхронных веб-приложений.
+## 📁 **Project Structure**
+The project follows a modular Django architecture:
 
-- **manage.py**: скрипт для управления проектом Django.
-- **requirements.txt**: список зависимостей проекта.
-- **README.md**: файл с описанием проекта.
+```
+NoteFlow/
+│── apps/                     # Django apps (main functionality)
+│   ├── users/                # User management and authentication
+│   ├── materials/            # Educational materials (upload, search, filter)
+│   ├── reviews/              # Rating and reviewing system
+│   ├── comments/             # Discussion and comments on materials
+│   ├── chats/                # WebSocket-based chat system (Redis + Django Channels)
+│── config/                    # Configuration settings
+│   ├── settings.py           # Main Django settings
+│   ├── urls.py               # URL routing
+│   ├── asgi.py               # ASGI configuration for WebSockets
+│── manage.py                 # Django management script
+│── requirements.txt           # Project dependencies
+│── README.md                  # Project documentation
+```
 
-## Установка и настройка
+---
 
-Для запуска серверной части выполните следующие шаги:
+## 🚀 **Installation & Setup**
+### **1️⃣ Clone the Repository**
+```bash
+git clone https://github.com/nurmek51/NoteFlow.git
+cd NoteFlow
+```
 
-1. **Клонируйте репозиторий:**
+### **2️⃣ Create and Activate a Virtual Environment**
+```bash
+python -m venv env
+source env/bin/activate  # Windows: env\Scripts\activate
+```
 
-   ```bash
-   git clone https://github.com/nurmek51/NoteFlow.git
-   cd NoteFlow
-   ```
-
-2. **Создайте и активируйте виртуальное окружение:**
-
-   ```bash
-   python -m venv env
-   source env/bin/activate  # Для Windows: env\Scripts\activate
-   ```
-
-3. **Установите зависимости:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Настройте базу данных:**
-
-   По умолчанию используется SQLite. Для использования другой СУБД (например, PostgreSQL), измените настройки в `config/settings.py`.
-
-5. **Настройте Redis:**
-
-   Убедитесь, что Redis установлен и запущен на вашем сервере. В `config/settings.py` укажите параметры подключения к Redis:
-
-   ```python
-   CHANNEL_LAYERS = {
-       'default': {
-           'BACKEND': 'channels_redis.core.RedisChannelLayer',
-           'CONFIG': {
-               'hosts': [('127.0.0.1', 6379)],
-           },
-       },
-   }
-   ```
-
-6. **Примените миграции базы данных:**
-
-   ```bash
-   python manage.py migrate
-   ```
-
-7. **Создайте суперпользователя для доступа к административной панели:**
-
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-8. **Запустите сервер разработки:**
-
-   ```bash
-   python manage.py runserver
-   ```
-
-   Сервер будет доступен по адресу `http://127.0.0.1:8000/`.
-
-## Чат-система
-
-Приложение `chats` реализует функциональность чатов между пользователями с использованием WebSocket и Redis. Основные компоненты:
-
-- **Routing**: в `chats/routing.py` определены маршруты для WebSocket-подключений.
-- **Consumers**: в `chats/consumers.py` реализованы обработчики WebSocket-сообщений.
-- **Models**: в `chats/models.py` определены модели для хранения сообщений и чатов.
-
-Для обеспечения работы чатов необходимо:
-
-- Настроить Redis и указать параметры подключения в `config/settings.py`.
-- Добавить `channels` и `chats` в список установленных приложений в `config/settings.py`.
-- Настроить ASGI-приложение в `config/asgi.py` для поддержки каналов.
-
-## Настройки проекта
-
-Файл `config/settings.py` содержит основные настройки проекта, включая параметры базы данных, приложения, middleware и другие конфигурации. При необходимости вы можете изменить настройки базы данных, указав параметры подключения к вашей СУБД.
-
-## Управление зависимостями
-
-Файл `requirements.txt` содержит список зависимостей проекта. Для установки всех необходимых пакетов используйте команду:
-
+### **3️⃣ Install Dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-## Управление базой данных
+### **4️⃣ Configure Database**
+- By default, the project uses **SQLite**.
+- To switch to **PostgreSQL**, update `DATABASES` in `config/settings.py`:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'note_flow_db',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
 
-Django использует ORM для работы с базой данных. Для применения изменений в моделях используйте команды:
+### **5️⃣ Configure Redis (for WebSockets & Caching)**
+- Install **Redis** (if not installed):
+```bash
+sudo apt install redis
+```
+- Ensure Redis is running:
+```bash
+redis-server
+```
+- Update `config/settings.py`:
+```python
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
+```
 
+### **6️⃣ Apply Migrations**
+```bash
+python manage.py migrate
+```
+
+### **7️⃣ Create a Superuser**
+```bash
+python manage.py createsuperuser
+```
+
+### **8️⃣ Start the Development Server**
+```bash
+python manage.py runserver
+```
+- The server will be available at: **`http://127.0.0.1:8000/`**
+- Admin Panel: **`http://127.0.0.1:8000/admin/`**
+
+---
+
+## 📡 **API Documentation (Swagger)**
+The backend includes **automatically generated API documentation** using **Swagger UI**.
+
+### **📌 How to Access the API Docs**
+After starting the server, visit:
+- **Swagger UI**: [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
+- **Redoc UI**: [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/)
+- **OpenAPI Schema**: [http://127.0.0.1:8000/api/schema/](http://127.0.0.1:8000/api/schema/)
+
+**To generate API documentation manually**, run:
+```bash
+python manage.py spectacular --color --file schema.yml
+```
+
+---
+
+## 💬 **Chat System (WebSockets)**
+The **chats** app allows real-time messaging using **Django Channels** and **Redis**.
+
+### **How it Works**
+1. **Users join a study group** → `/api/groups/{id}/join/`
+2. **They receive a WebSocket URL** → `/api/groups/{id}/chat_link/`
+3. **Connect to WebSocket**
+```javascript
+const socket = new WebSocket("wss://yourdomain.com/ws/group/{group_id}/?token=your_jwt_token");
+```
+4. **Send & receive messages in real-time!**
+
+### **Redis WebSocket Setup**
+- Install `channels_redis`:
+```bash
+pip install channels_redis
+```
+- Ensure `config/asgi.py` is configured correctly:
+```python
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+import apps.chats.routing
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": URLRouter(apps.chats.routing.websocket_urlpatterns),
+})
+```
+
+---
+
+## 📚 **Database Management**
+To make and apply migrations:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-## Административная панель
+---
 
-Django предоставляет встроенную административную панель для управления данными. После создания суперпользователя вы можете получить доступ к панели по адресу `http://127.0.0.1:8000/admin/` и управлять пользователями, материалами и другими сущностями.
+## 🔑 **Authentication**
+The project uses **JWT authentication** with `Simple JWT`.
 
+### **Endpoints**
+- **Obtain Token:** `POST /api/token/`
+- **Refresh Token:** `POST /api/token/refresh/`
+- **User Registration:** `POST /api/register/`
+- **User Profile:** `GET /api/user/detail/{id}/`
 
-## Заключение
+To authenticate API requests, include the token:
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
 
-NoteFlow предоставляет мощный и гибкий инструмент для управления образовательными материалами и общения между пользователями в Университете SDU. Следуя данной документации, вы сможете успешно развернуть и настроить серверную часть платформы, а также адаптировать ее под специфические требования вашего учебного заведения. 
+---
+
+## 📌 **Project API Overview**
+### **🔹 Study Groups**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET`  | `/api/groups/` | List all study groups |
+| `POST` | `/api/groups/` | Create a new study group |
+| `GET`  | `/api/groups/{id}/` | Retrieve study group details |
+| `PUT`  | `/api/groups/{id}/` | Update a study group |
+| `PATCH` | `/api/groups/{id}/` | Partially update a study group |
+| `DELETE` | `/api/groups/{id}/` | Delete a study group |
+| `GET`  | `/api/groups/{id}/chat_link/` | Get WebSocket Chat Link |
+| `POST` | `/api/groups/{id}/join/` | Join a Study Group |
+| `POST` | `/api/groups/{id}/leave/` | Leave a Study Group |
+| `GET`  | `/api/groups/my_groups/` | List groups user is part of |
+
+### **🔹 Educational Materials**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET`  | `/api/material/` | List all materials |
+| `POST` | `/api/material/` | Upload new material |
+| `GET`  | `/api/material/{id}/` | Get material details |
+| `PUT`  | `/api/material/{id}/` | Update material |
+| `DELETE` | `/api/material/{id}/` | Delete material |
+| `POST` | `/api/material/upload/` | Upload a file |
+
+### **🔹 Users & Authentication**
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `POST` | `/api/register/` | Register a new user |
+| `POST` | `/api/token/` | Obtain JWT token |
+| `POST` | `/api/token/refresh/` | Refresh JWT token |
+| `GET`  | `/api/user/detail/{id}/` | Get user details |
+| `PUT`  | `/api/user/detail/{id}/` | Update user profile |
+| `DELETE` | `/api/user/detail/{id}/` | Delete user profile |
+
+---
+
+## 📜 **Conclusion**
+**NoteFlow** is a powerful and flexible platform for managing educational materials and facilitating communication among SDU University students. By following this guide, you can successfully deploy, configure, and extend the backend to suit your needs.
+
+🔥 Happy coding! 🚀
