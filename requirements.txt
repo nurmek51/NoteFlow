@@ -40,3 +40,5 @@ django-cors-headers==3.13.0
 python-dotenv==1.0.1
 
 
+# Swagger UI
+drf-spectacular==0.28.0
