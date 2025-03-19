@@ -11,28 +11,6 @@ This documentation covers **backend setup, API documentation, database managemen
 
 ---
 
-## 📁 **Project Structure**
-The project follows a modular Django architecture:
-
-```
-NoteFlow/
-│── apps/                     # Django apps (main functionality)
-│   ├── users/                # User management and authentication
-│   ├── materials/            # Educational materials (upload, search, filter)
-│   ├── reviews/              # Rating and reviewing system
-│   ├── comments/             # Discussion and comments on materials
-│   ├── chats/                # WebSocket-based chat system (Redis + Django Channels)
-│── config/                    # Configuration settings
-│   ├── settings.py           # Main Django settings
-│   ├── urls.py               # URL routing
-│   ├── asgi.py               # ASGI configuration for WebSockets
-│── manage.py                 # Django management script
-│── requirements.txt           # Project dependencies
-│── README.md                  # Project documentation
-```
-
----
-
 ## 🚀 **Installation & Setup**
 ### **1️⃣ Clone the Repository**
 ```bash
