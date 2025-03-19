@@ -6,6 +6,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('apps.users.urls')),  # Подключаем users.urls
     path('api/', include('apps.materials.urls')), # Включил материалы корочежиесть
+    path('api/', include('apps.chats.urls')), # Включил chats корочежиесть
 
 
 
