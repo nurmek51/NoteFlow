@@ -25,6 +25,12 @@ def validate_file_size(value):
     if value.size > 5 * 1024 * 1024:  # 5MB
         raise ValidationError("File is to big! (maximum 5MB)")
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class StudyMaterial(models.Model):
 
     title = models.CharField(max_length=255)
@@ -33,16 +39,10 @@ class StudyMaterial(models.Model):
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_materials')
     file = models.FileField(upload_to='materials/', validators=[validate_material_extension, validate_file_size], blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField("materials.Tag",related_name="study_mater_of_tag", max_length=255, blank=True)
 
     def __str__(self):
         return self.title
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    materials = models.ManyToManyField(StudyMaterial, related_name='tags', blank=True)
-
-    def __str__(self):
-        return self.name
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')

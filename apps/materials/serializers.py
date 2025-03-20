@@ -16,6 +16,13 @@ class StudyMaterialSerializer(serializers.ModelSerializer):
         model = StudyMaterial
         fields = '__all__'
 
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags',[])
+        study_material = StudyMaterial.objects.create(**validated_data)
+        for tag_data in tags_data:
+            tag = Tag.objects.get_or_create(name=tag_data['name'])
+            study_material.tags.add(tag[0])
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag

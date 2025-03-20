@@ -12,7 +12,6 @@ from .serializers import (
 )
 
 
-# ✅ CRUD для предметов (Subjects)
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def subject_list(request):
@@ -38,7 +37,6 @@ def subject_detail(request, pk):
         return Response(serializer.data)
 
 
-# ✅ CRUD для учебных материалов (StudyMaterial)
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def material_list(request):
@@ -124,7 +122,7 @@ def comment_list(request, material_id):
     material = get_object_or_404(StudyMaterial, id=material_id)
 
     if request.method == 'GET':
-        comments = material.comments.all()
+        comments = Comment.objects.filter(material=material)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
