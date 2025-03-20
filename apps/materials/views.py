@@ -41,8 +41,8 @@ def subject_detail(request, pk):
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def material_list(request):
     """
-    - GET: Получить список всех учебных материалов.
-    - POST: Загрузить новый материал (только авторизованные пользователи).
+    - GET -> get list of all materials.
+    - POST: upload material.
     """
     if request.method == 'GET':
         materials = StudyMaterial.objects.all()
@@ -57,13 +57,31 @@ def material_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+def filtered_material_list(request):
+    '''get -> get list of materials on some subject with some tag if there is one'''
+    if request.method == 'GET':
+        tags = request.data.get('tags', None)
+        subject = request.data.get('subjects', None)
+
+        materials = StudyMaterial.objects.all()
+
+        if tags:
+            materials = materials.filter(tags__name__in=tags)
+        if subject:
+            materials = materials.filter(subjects__name__in=subject)
+
+        serializer = StudyMaterialSerializer(materials, many=True)
+        return Response(serializer.data)
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def material_detail(request, pk):
     """
-    - GET: Получить детали конкретного учебного материала.
-    - PUT: Изменить материал (только если пользователь — владелец).
-    - DELETE: Удалить материал (только если пользователь — владелец).
+    - GET -> get details of material.
+    - PUT-> edit uploaded material.
+    - DELETE -> delete uploaded material.
     """
     material = get_object_or_404(StudyMaterial, pk=pk)
 
@@ -89,13 +107,12 @@ def material_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ✅ Лайки/дизлайки для материалов (Votes)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def vote_material(request, material_id):
     """
-    - POST: Поставить лайк (1) или дизлайк (-1) на учебный материал (только авторизованные пользователи).
-    - Если голос уже существует, он обновляется.
+    - POST: set like(1) or dislike(-1) on a material.
+    - if user already set a vote, it changes.
     """
     material = get_object_or_404(StudyMaterial, id=material_id)
     user = request.user
@@ -104,20 +121,20 @@ def vote_material(request, material_id):
     if vote_value not in [1, -1]:
         return Response({"error": "Invalid vote value"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Создаем или обновляем голос пользователя
+    # create or edit vote
     vote, created = Vote.objects.update_or_create(user=user, material=material, defaults={'vote': vote_value})
 
     return Response({"message": f"Vote {'updated' if not created else 'added'} successfully"},
                     status=status.HTTP_200_OK)
 
 
-# ✅ Комментарии к учебным материалам (Comments)
+# comments
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def comment_list(request, material_id):
     """
-    - GET: Получить все комментарии к конкретному учебному материалу.
-    - POST: Добавить новый комментарий (только авторизованные пользователи).
+    - GET -> get comments on a material.
+    - POST -> upload comment on a material.
     """
     material = get_object_or_404(StudyMaterial, id=material_id)
 

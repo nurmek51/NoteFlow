@@ -1,35 +1,37 @@
-Вот дополненный и доработанный `README.md` с учетом Swagger-документации и улучшенной структурой.  
+##  **NoteFlow **
 
----
-
-## 📌 **NoteFlow — Server-side Documentation**
-
-### 📖 **Project Description**
+###  **Project Description**
 **NoteFlow** is a platform for sharing educational materials at SDU University. It allows users to upload, search, filter, rate, and discuss study materials across various subjects. The platform also features **a chat system** for communication between users.
+Key Features:
+ 
+    Material Uploading: Users can upload educational materials, which are linked to their accounts.
+    
+    Tagging System: Uploaded materials can be tagged with predefined tags to improve searchability.
+        
+    Chat/Group Chat: Users can have conversations because of websocket technology
 
-This documentation covers **backend setup, API documentation, database management, and WebSocket chat configuration**.
-
+    Private: Users can authenticate only by mail -> @sdu.edu.kz, so its only for SDU University students 
 ---
 
-## 🚀 **Installation & Setup**
-### **1️⃣ Clone the Repository**
+## **Installation & Setup**
+### **1️) Clone the Repository**
 ```bash
 git clone https://github.com/nurmek51/NoteFlow.git
 cd NoteFlow
 ```
 
-### **2️⃣ Create and Activate a Virtual Environment**
+### **2) Create and Activate a Virtual Environment**
 ```bash
 python -m venv env
 source env/bin/activate  # Windows: env\Scripts\activate
 ```
 
-### **3️⃣ Install Dependencies**
+### **3) Install Dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### **4️⃣ Configure Database**
+### **4️)Configure Database**
 - By default, the project uses **SQLite**.
 - To switch to **PostgreSQL**, update `DATABASES` in `config/settings.py`:
 ```python
@@ -45,7 +47,7 @@ DATABASES = {
 }
 ```
 
-### **5️⃣ Configure Redis (for WebSockets & Caching)**
+### **5️) Configure Redis (for WebSockets & Caching)**
 - Install **Redis** (if not installed):
 ```bash
 sudo apt install redis
@@ -66,17 +68,38 @@ CHANNEL_LAYERS = {
 }
 ```
 
-### **6️⃣ Apply Migrations**
+### **6) Apply Migrations**
 ```bash
 python manage.py migrate
 ```
 
-### **7️⃣ Create a Superuser**
+### **7️) Add data to .env**
+But you can not upload materials, because locally you dont registered to aws s3
 ```bash
-python manage.py createsuperuser
+SECRET_KEY=secret_key_you_know
+DEBUG=True
+ALLOWED_HOSTS="localhost,127.0.0.1"
+
+
+DATABASE_URL="postgres://username:password@localhost:5432/dbName"
+
+# CORS settings
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+
+# Redis 
+REDIS_URL=redis://localhost:6379
+
+#email for sending mails when register and reset password
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # original
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'email address'
+EMAIL_HOST_PASSWORD = 'address password'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ```
 
-### **8️⃣ Start the Development Server**
+### **8️)Start the Development Server**
 ```bash
 python manage.py runserver
 ```
@@ -85,10 +108,10 @@ python manage.py runserver
 
 ---
 
-## 📡 **API Documentation (Swagger)**
+##  **API Documentation (Swagger)**
 The backend includes **automatically generated API documentation** using **Swagger UI**.
 
-### **📌 How to Access the API Docs**
+### **How to Access the API Docs**
 After starting the server, visit:
 - **Swagger UI**: [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
 - **Redoc UI**: [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/)
@@ -101,7 +124,7 @@ python manage.py spectacular --color --file schema.yml
 
 ---
 
-## 💬 **Chat System (WebSockets)**
+##  **Chat System (WebSockets)**
 The **chats** app allows real-time messaging using **Django Channels** and **Redis**.
 
 ### **How it Works**
@@ -132,7 +155,7 @@ application = ProtocolTypeRouter({
 
 ---
 
-## 📚 **Database Management**
+## **Required migrations!!!**
 To make and apply migrations:
 ```bash
 python manage.py makemigrations
@@ -141,60 +164,17 @@ python manage.py migrate
 
 ---
 
-## 🔑 **Authentication**
+## **Authentication**
 The project uses **JWT authentication** with `Simple JWT`.
 
 ### **Endpoints**
-- **Obtain Token:** `POST /api/token/`
-- **Refresh Token:** `POST /api/token/refresh/`
+- **Obtain Token:** `POST /api/token/` -> just login
+- **Refresh Token:** `POST /api/token/refresh/` -> automatically handles to refresh the token
 - **User Registration:** `POST /api/register/`
-- **User Profile:** `GET /api/user/detail/{id}/`
+- **Own Profile:** `GET /api/user/detail/{id}/`
 
 To authenticate API requests, include the token:
 ```http
-Authorization: Bearer YOUR_ACCESS_TOKEN
+Authorization: *Bearer* YOUR_ACCESS_TOKEN
 ```
 
----
-
-## 📌 **Project API Overview**
-### **🔹 Study Groups**
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `GET`  | `/api/groups/` | List all study groups |
-| `POST` | `/api/groups/` | Create a new study group |
-| `GET`  | `/api/groups/{id}/` | Retrieve study group details |
-| `PUT`  | `/api/groups/{id}/` | Update a study group |
-| `PATCH` | `/api/groups/{id}/` | Partially update a study group |
-| `DELETE` | `/api/groups/{id}/` | Delete a study group |
-| `GET`  | `/api/groups/{id}/chat_link/` | Get WebSocket Chat Link |
-| `POST` | `/api/groups/{id}/join/` | Join a Study Group |
-| `POST` | `/api/groups/{id}/leave/` | Leave a Study Group |
-| `GET`  | `/api/groups/my_groups/` | List groups user is part of |
-
-### **🔹 Educational Materials**
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `GET`  | `/api/material/` | List all materials |
-| `POST` | `/api/material/` | Upload new material |
-| `GET`  | `/api/material/{id}/` | Get material details |
-| `PUT`  | `/api/material/{id}/` | Update material |
-| `DELETE` | `/api/material/{id}/` | Delete material |
-| `POST` | `/api/material/upload/` | Upload a file |
-
-### **🔹 Users & Authentication**
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `POST` | `/api/register/` | Register a new user |
-| `POST` | `/api/token/` | Obtain JWT token |
-| `POST` | `/api/token/refresh/` | Refresh JWT token |
-| `GET`  | `/api/user/detail/{id}/` | Get user details |
-| `PUT`  | `/api/user/detail/{id}/` | Update user profile |
-| `DELETE` | `/api/user/detail/{id}/` | Delete user profile |
-
----
-
-## 📜 **Conclusion**
-**NoteFlow** is a powerful and flexible platform for managing educational materials and facilitating communication among SDU University students. By following this guide, you can successfully deploy, configure, and extend the backend to suit your needs.
-
-🔥 Happy coding! 🚀

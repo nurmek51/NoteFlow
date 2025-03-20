@@ -7,13 +7,13 @@ from .views import (
 
 urlpatterns = [
     # ✅ Эндпоинты для предметов (Subjects)
-    path('subjects/', subject_list, name='subject-list'),  # Получить все предметы
-    path('subjects/<int:pk>/', subject_detail, name='subject-detail'),  # Детали конкретного предмета
+    path('subjects/', subject_list, name='subject-list'),  # get all subjects
+    path('subjects/<int:pk>/', subject_detail, name='subject-detail'),  # get details of subject
 
-    path('material/', material_list, name='material-list'), # Список всех материалов/Добавить новый
-    path('material/<int:pk>/', material_detail, name = 'material-detail'), # Детали конкретного материала/Изменить и удалить материал
+    path('material/', material_list, name='material-list'), # list of all materials
+    path('material/<int:pk>/', material_detail, name = 'material-detail'), # details of material/delete and edit
 
-    path('material/vote/<int:material_id>/', vote_material, name='vote-material'), #Поставить лайк(1)/дизлайк(-1)
+    path('material/vote/<int:material_id>/', vote_material, name='vote-material'), #like(1) or dislike(-1)
     path('material/comment/<int:material_id>/', comment_list, name = 'comment-list'), #Получить все комменты/Написать комм
 
     path('material/upload/', MaterialUploadView.as_view(), name='material-upload' ), #UPLOAD MATERUIAL and update

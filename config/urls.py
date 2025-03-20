@@ -6,8 +6,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('apps.users.urls')),  # Подключаем users.urls
-    path('api/', include('apps.materials.urls')), # Включил материалы корочежиесть
+    path('users/', include('apps.users.urls')),  # Подключаем users.urls
+    path('materials/', include('apps.materials.urls')), # Включил материалы корочежиесть
     path('api/', include('apps.chats.urls')), # Включил chats корочежиесть
 
 
